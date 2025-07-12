@@ -24,8 +24,11 @@ def enviar_resposta(numero, texto):
     url = f'https://api.z-api.io/instances/{zapi_instance}/token/{zapi_token}/send-text'
     payload = {"phone": numero, "message": texto}
     print(f"[ENVIANDO PARA Z-API] {numero}: {texto}")
-    response = requests.post(url, json=payload)
-    print(f"[Z-API RESPONSE] {response.status_code} - {response.text}")
+    try:
+        response = requests.post(url, json=payload)
+        print(f"[Z-API RESPONSE] {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"[Z-API ERROR] {str(e)}")
 
 @app.route('/webhook', methods=['POST'])
 def receber_mensagem():
@@ -35,7 +38,13 @@ def receber_mensagem():
         data = request.get_json(force=True, silent=True) or {}
         print(f"[WEBHOOK] JSON interpretado: {data}")
 
-        texto = data.get('text', {}).get('message', '')
+        # Ajuste para tratar o formato correto
+        texto_raw = data.get('text')
+        if isinstance(texto_raw, dict):
+            texto = texto_raw.get('message', '')
+        else:
+            texto = ''
+
         numero = data.get('phone', '')
 
         if not texto or not numero:
