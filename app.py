@@ -34,24 +34,24 @@ def receber_mensagem():
         print(f"[WEBHOOK] Dados recebidos brutos: {request.data}")
         print(f"[WEBHOOK] JSON interpretado: {data}")
 
-msg_raw = data.get('message')
+        msg_raw = data.get('message')
 
-if isinstance(msg_raw, dict):
-    texto = msg_raw.get('text', '')
-    numero = msg_raw.get('from', '')
-else:
-    texto = msg_raw
-    numero = data.get('phone', '')
+        if isinstance(msg_raw, dict):
+            texto = msg_raw.get('text', '')
+            numero = msg_raw.get('from', '')
+        else:
+            texto = msg_raw
+            numero = data.get('phone', '')
 
-if not texto or not numero:
-    print("[WEBHOOK] Falha: texto ou número ausente.")
-    return '', 400
+        if not texto or not numero:
+            print("[WEBHOOK] Falha: texto ou número ausente.")
+            return '', 400
 
-if len(texto) != 14 or not texto.isdigit():
-    enviar_resposta(numero, "❌ Envie apenas um CNPJ com 14 números, sem pontos ou traços.")
-    return '', 200
+        if len(texto) != 14 or not texto.isdigit():
+            enviar_resposta(numero, "❌ Envie apenas um CNPJ com 14 números, sem pontos ou traços.")
+            return '', 200
 
-resumo, erro = consultar_cnpj(texto)
+        resumo, erro = consultar_cnpj(texto)
 
         if erro:
             enviar_resposta(numero, f"❌ Erro na consulta: {erro}")
