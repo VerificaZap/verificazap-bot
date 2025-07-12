@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify
 import requests
 import os
@@ -33,17 +32,11 @@ def receber_mensagem():
         print(f"[WEBHOOK] Headers: {dict(request.headers)}")
         print(f"[WEBHOOK] Body raw: {request.data}")
         data = request.get_json(force=True, silent=True) or {}
-        print(f"[WEBHOOK] Dados recebidos brutos: {request.data}")
         print(f"[WEBHOOK] JSON interpretado: {data}")
 
-        msg_raw = data.get('message')
-
-        if isinstance(msg_raw, dict):
-            texto = msg_raw.get('text', '')
-            numero = msg_raw.get('from', '')
-        else:
-            texto = msg_raw
-            numero = data.get('phone', '')
+        # Atualizado de acordo com o JSON real recebido da Z-API
+        texto = data.get('text', {}).get('message', '')
+        numero = data.get('phone', '')
 
         if not texto or not numero:
             print("[WEBHOOK] Falha: texto ou número ausente.")
@@ -84,3 +77,4 @@ def homepage():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)
+
