@@ -9,7 +9,7 @@ def consultar_cnpj(cnpj):
         f"✅ Empresa Verificada\n"
         f"📄 POSTO FICTÍCIO LTDA (POSTO FICTÍCIO)\n"
         f"📆 Abertura: 10/02/2010\n"
-        f"🧾 CNPJ: {cnpj}\n"
+        f"🗞 CNPJ: {cnpj}\n"
         f"📌 Situação: ATIVA\n"
         f"💼 Atividade: Comércio varejista de combustíveis\n"
         f"📍 Local: São Paulo/SP\n"
@@ -22,9 +22,10 @@ zapi_token = '47A7C1C9E5CB334EBC020A8D'
 
 def enviar_resposta(numero, texto):
     url = f'https://api.z-api.io/instances/{zapi_instance}/token/{zapi_token}/send-text'
-    payload = { "phone": numero, "message": texto }
+    payload = {"phone": numero, "message": texto}
     print(f"[ENVIANDO PARA Z-API] {numero}: {texto}")
-    requests.post(url, json=payload)
+    response = requests.post(url, json=payload)
+    print(f"[Z-API RESPONSE] {response.status_code} - {response.text}")
 
 @app.route('/webhook', methods=['POST'])
 def receber_mensagem():
@@ -34,7 +35,6 @@ def receber_mensagem():
         data = request.get_json(force=True, silent=True) or {}
         print(f"[WEBHOOK] JSON interpretado: {data}")
 
-        # Atualizado de acordo com o JSON real recebido da Z-API
         texto = data.get('text', {}).get('message', '')
         numero = data.get('phone', '')
 
@@ -77,4 +77,3 @@ def homepage():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)
-
