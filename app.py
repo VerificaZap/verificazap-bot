@@ -38,14 +38,15 @@ def receber_mensagem():
         data = request.get_json(force=True, silent=True) or {}
         print(f"[WEBHOOK] JSON interpretado: {data}")
 
-        # Ajuste para tratar o formato correto
-        texto_raw = data.get('text')
-        if isinstance(texto_raw, dict):
-            texto = texto_raw.get('message', '')
-        else:
-            texto = ''
+        texto = ''
+        if isinstance(data.get('text'), dict):
+            texto = data['text'].get('message', '')
+        elif isinstance(data.get('text'), str):
+            texto = data['text']
 
         numero = data.get('phone', '')
+
+        print(f"[WEBHOOK] Extrato: texto='{texto}' numero='{numero}'")
 
         if not texto or not numero:
             print("[WEBHOOK] Falha: texto ou número ausente.")
