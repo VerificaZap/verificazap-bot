@@ -30,6 +30,8 @@ def enviar_resposta(numero, texto):
 @app.route('/webhook', methods=['POST'])
 def receber_mensagem():
     try:
+        print(f"[WEBHOOK] Headers: {dict(request.headers)}")
+        print(f"[WEBHOOK] Body raw: {request.data}")
         data = request.get_json(force=True, silent=True) or {}
         print(f"[WEBHOOK] Dados recebidos brutos: {request.data}")
         print(f"[WEBHOOK] JSON interpretado: {data}")
