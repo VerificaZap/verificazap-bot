@@ -4,6 +4,7 @@ import os
 
 app = Flask(__name__)
 
+# Simula uma resposta para consulta de CNPJ
 def consultar_cnpj(cnpj):
     resumo = (
         f"✅ Empresa Verificada\n"
@@ -20,18 +21,17 @@ def consultar_cnpj(cnpj):
 zapi_instance = '3E4098EAF8EF11B5B5083E61E96978DB'
 zapi_token = '47A7C1C9E5CB334EBC020A8D'
 
-
+# Envia mensagem para o número informado via Z-API
 def enviar_resposta(numero, texto):
     url = f'https://api.z-api.io/instances/{zapi_instance}/token/{zapi_token}/send-text'
     headers = {
-        'Client-Token': zapi_token,
-        'Content-Type': 'application/json'
+        "Client-Token": zapi_token,
+        "Content-Type": "application/json"
     }
     payload = {"phone": numero, "message": texto}
     print(f"[ENVIANDO PARA Z-API] {numero}: {texto}")
-    response = requests.post(url, json=payload, headers=headers)
-    print(f"[Z-API RESPONSE] {response.status_code} - {response.text}")
-
+    resposta = requests.post(url, json=payload, headers=headers)
+    print(f"[Z-API RESPONSE] {resposta.status_code} - {resposta.text}")
 
 @app.route('/webhook', methods=['POST'])
 def receber_mensagem():
@@ -41,10 +41,10 @@ def receber_mensagem():
         data = request.get_json(force=True, silent=True) or {}
         print(f"[WEBHOOK] JSON interpretado: {data}")
 
-        # Ajuste compatível com o payload da Z-API
-        msg_raw = data.get('text') or {}
-        texto = msg_raw.get('message') if isinstance(msg_raw, dict) else None
-        numero = data.get('phone')
+        texto = ''
+        if 'text' in data and isinstance(data['text'], dict):
+            texto = data['text'].get('message', '')
+        numero = data.get('phone', '')
 
         print(f"[WEBHOOK] Extrato: texto='{texto}' numero='{numero}'")
 
@@ -69,7 +69,6 @@ def receber_mensagem():
         print(f"[WEBHOOK] Erro inesperado: {str(e)}")
         return '', 500
 
-
 @app.route('/consulta', methods=['POST'])
 def consulta_cnpj():
     dados = request.get_json()
@@ -81,11 +80,9 @@ def consulta_cnpj():
         return jsonify({'erro': erro}), 400
     return jsonify({'resumo': resumo})
 
-
 @app.route('/', methods=['GET'])
 def homepage():
     return 'VerificaZap rodando!'
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
