@@ -33,27 +33,35 @@ def enviar_resposta(numero, texto):
 
 @app.route('/webhook', methods=['POST'])
 def receber_mensagem():
-    data = request.json
-    print(f"Dados recebidos: {data}")
+    try:
+        # Tenta pegar o JSON mesmo se o cabeçalho estiver errado
+        data = request.get_json(force=True, silent=True) or {}
+        print(f"[WEBHOOK] Dados recebidos brutos: {request.data}")
+        print(f"[WEBHOOK] JSON interpretado: {data}")
 
-    mensagem = data.get('message')
-    numero = data.get('phone')
+        mensagem = data.get('message')
+        numero = data.get('phone')
 
-    if not mensagem or not numero:
-        print("Mensagem ou número não recebidos corretamente.")
-        return '', 400
+        if not mensagem or not numero:
+            print("[WEBHOOK] Falha: 'message' ou 'phone' ausente.")
+            return '', 400
 
-    if len(mensagem) != 14 or not mensagem.isdigit():
-        enviar_resposta(numero, "❌ Envie apenas um CNPJ com 14 números, sem pontos ou traços.")
+        if len(mensagem) != 14 or not mensagem.isdigit():
+            enviar_resposta(numero, "❌ Envie apenas um CNPJ com 14 números, sem pontos ou traços.")
+            return '', 200
+
+        resumo, erro = consultar_cnpj(mensagem)
+        if erro:
+            enviar_resposta(numero, f"❌ Erro na consulta: {erro}")
+        else:
+            enviar_resposta(numero, resumo)
+
         return '', 200
 
-    resumo, erro = consultar_cnpj(mensagem)
-    if erro:
-        enviar_resposta(numero, f"❌ Erro na consulta: {erro}")
-    else:
-        enviar_resposta(numero, resumo)
+    except Exception as e:
+        print(f"[WEBHOOK] Erro no processamento: {str(e)}")
+        return '', 500
 
-    return '', 200
 
 @app.route('/consulta', methods=['POST'])
 def consulta_cnpj():
