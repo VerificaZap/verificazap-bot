@@ -1,28 +1,30 @@
 from flask import Flask, request, jsonify
 import requests
 import re
+import os
 
 app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "API online"
 
 @app.route('/consulta_receita', methods=['GET'])
 def consulta_receita():
     cnpj_raw = request.args.get('mensagem', '')
-    cnpj = re.sub(r'\D', '', cnpj_raw)  # Remove tudo que não for número
+    cnpj = re.sub(r'\D', '', cnpj_raw)
 
     if len(cnpj) != 14:
         return jsonify({"erro": "CNPJ inválido"}), 400
 
     url = f"https://www.receitaws.com.br/v1/cnpj/{cnpj}"
-    # Se tiver token: url += "?token=SEU_TOKEN"
 
     try:
-        r = requests.get(url)
-        return jsonify(r.json())
+        response = requests.get(url)
+        return jsonify(response.json())
     except Exception as e:
-        return jsonify({"erro": "Erro ao consultar ReceitaWS", "detalhe": str(e)}), 500
+        return jsonify({"erro": "Falha ao consultar ReceitaWS", "detalhe": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=10000)
-
-
-   
+    port = int(os.environ.get('PORT', 10000))
+    app.run(debug=True, host='0.0.0.0', port=port)
